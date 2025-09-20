@@ -1,3 +1,4 @@
+import React, { Component } from "react";
 import { MouseEvent, useState } from "react";
 import styled from "styled-components";
 type StepPoint = { name: string; x: number; y: number; linkedTo?: string[] };
@@ -11,92 +12,108 @@ type BardConfig<T extends "grid" | "steps"> = {
     image: string;
 };
 
-function Bard<T extends "grid" | "steps">({
-    config,
-    on,
-}: {
+type BardProps<T extends "grid" | "steps"> = {
     config: BardConfig<T>;
     on: (eventName: string, ...args: any[]) => void;
-}) {
-    const listeners = [];
+};
 
-    const emit = (eventName: string, ...args: any[]) => {
-        on(eventName, ...args);
-        listeners.forEach((listener) => listener(eventName, ...args));
-    };
+type BardState = {
+    mode: "draw" | "link" | "drag" | "none";
+    points: StepPoint[];
+    grid: Grid;
+    mousePercent: { x: number; y: number };
+    links: { from: string; to: string }[];
+};
 
-    const addListener = (
-        listener: (eventName: string, ...args: any[]) => void
-    ) => {
-        listeners.push(listener);
-    };
+export class Bard<T extends "grid" | "steps"> extends Component<
+    BardProps<T>,
+    BardState
+> {
+    private listeners: ((eventName: string, ...args: any[]) => void)[] = [];
 
-    const [mode, setMode] = useState<"draw" | "link" | "drag" | "none">("none");
-    const [points, setPoints] = useState<StepPoint[]>([]);
-    const [grid, setGrid] = useState<Grid>({
-        height: 0,
-        width: 0,
-        boxes: [],
-    });
+    constructor(props: BardProps<T>) {
+        super(props);
 
-    const [mousePercent, setMousePercent] = useState({ x: 0, y: 0 });
+        this.state = {
+            mode: "none",
+            points: [],
+            grid: {
+                height: 0,
+                width: 0,
+                boxes: [],
+            },
+            mousePercent: { x: 0, y: 0 },
+            links: [],
+        };
 
-    function mousemove(ev: MouseEvent<HTMLDivElement>) {
-        const rect = (ev.target as HTMLDivElement).getBoundingClientRect();
-        const x = ((ev.pageX - rect.left) / rect.width) * 100;
-        const y = ((ev.pageY - rect.top) / rect.height) * 100;
-
-        emit("mousemove", {
-            percentage: { x, y },
-            pixel: { x: ev.clientX, y: ev.clientY },
-        });
-
-        setMousePercent({ x: x * 100, y: y * 100 });
+        this.mousemove = this.mousemove.bind(this);
+        this.pointClick = this.pointClick.bind(this);
+        this.boxClick = this.boxClick.bind(this);
     }
 
-    function pointClick(ev: MouseEvent<HTMLDivElement>) {
-        emit("click", ev);
+    emit(eventName: string, ...args: any[]) {
+        this.props.on(eventName, ...args);
+        this.listeners.forEach((listener) => listener(eventName, ...args));
     }
 
-    function boxClick(ev: MouseEvent<HTMLDivElement>) {
-        emit("click", ev);
+    addListener(listener: (eventName: string, ...args: any[]) => void) {
+        this.listeners.push(listener);
     }
 
-    const [links, setLinks] = useState<{ from: string; to: string }[]>([]);
+    componentDidMount() {
+        this.updateFromConfig();
+    }
 
-    switch (config.type) {
-        case "grid":
-            setGrid(config.data as Grid);
-            break;
-        case "steps":
-            setPoints(config.data as StepPoint[]);
+    componentDidUpdate(prevProps: BardProps<T>) {
+        if (prevProps.config !== this.props.config) {
+            this.updateFromConfig();
+        }
+    }
+
+    updateFromConfig() {
+        const { config } = this.props;
+
+        if (config.type === "grid") {
+            this.setState({ grid: config.data as Grid });
+        } else if (config.type === "steps") {
+            const points = config.data as StepPoint[];
+            const links: { from: string; to: string }[] = [];
 
             points.forEach((point) => {
                 if (point.linkedTo) {
                     point.linkedTo.forEach((linkedTo) => {
-                        setLinks([
-                            ...links,
-                            { from: point.name, to: linkedTo },
-                        ]);
+                        links.push({ from: point.name, to: linkedTo });
                     });
                 }
             });
-            break;
-        default:
-            break;
+
+            this.setState({ points, links });
+        }
     }
 
-    let MainDiv = styled.div`
-        position: relative;
-        background-image: url("${config.image}");
-        background-size: contain;
-        background-position: center center;
-        background-repeat: no-repeat;
-        width: 100%;
-        height: 100%;
-    `;
+    mousemove(ev: MouseEvent<HTMLDivElement>) {
+        const rect = (ev.target as HTMLDivElement).getBoundingClientRect();
+        const x = ((ev.pageX - rect.left) / rect.width) * 100;
+        const y = ((ev.pageY - rect.top) / rect.height) * 100;
 
-    function generateGridElements() {
+        this.emit("mousemove", {
+            percentage: { x, y },
+            pixel: { x: ev.clientX, y: ev.clientY },
+        });
+
+        this.setState({ mousePercent: { x: x * 100, y: y * 100 } });
+    }
+
+    pointClick(ev: MouseEvent<HTMLDivElement>) {
+        this.emit("click", ev);
+    }
+
+    boxClick(ev: MouseEvent<HTMLDivElement>) {
+        this.emit("click", ev);
+    }
+
+    generateGridElements() {
+        const { config } = this.props;
         if (config.type !== "grid") return [];
         let elements: any[] = [];
         let c = config.data as Grid;
@@ -130,46 +147,66 @@ function Bard<T extends "grid" | "steps">({
                 }
             }
 
-            elements.push(<Column>{rows.map((Row) => Row)}</Column>);
+            elements.push(<Column key={i}>{rows}</Column>);
         }
 
         return elements;
     }
 
-    return (
-        <MainDiv onMouseMove={mousemove}>
-            {config.type === "steps" &&
-                points.map((point) => (
-                    <div
-                        key={point.name}
-                        style={{
-                            position: "absolute",
-                            width: `${config.boxSize}px`,
-                            height: `${config.boxSize}px`,
-                            left: `calc(${point.x}% - ${config.boxSize / 2}px)`,
-                            top: `calc(${point.y}% - ${config.boxSize / 2}px)`,
-                            borderRadius: "50%",
-                            zIndex: 3,
-                            cursor: "pointer",
-                        }}
-                        id={point.name}
-                        onClick={(ev) => pointClick(ev)}
-                    ></div>
-                ))}
-            {config.type === "grid" && (
-                <div id="grid">
-                    {generateGridElements().map((El, index) => (
-                        <El key={index} onClick={(ev) => boxClick(ev)} />
+    render() {
+        const { config } = this.props;
+        const { points } = this.state;
+
+        let MainDiv = styled.div`
+            position: relative;
+            background-image: url("${config.image}");
+            background-size: contain;
+            background-position: center center;
+            background-repeat: no-repeat;
+            width: 100%;
+            height: 100%;
+        `;
+
+        return (
+            <MainDiv onMouseMove={this.mousemove}>
+                {config.type === "steps" &&
+                    points.map((point) => (
+                        <div
+                            key={point.name}
+                            style={{
+                                position: "absolute",
+                                width: `${config.boxSize}px`,
+                                height: `${config.boxSize}px`,
+                                left: `calc(${point.x}% - ${
+                                    config.boxSize / 2
+                                }px)`,
+                                top: `calc(${point.y}% - ${
+                                    config.boxSize / 2
+                                }px)`,
+                                borderRadius: "50%",
+                                zIndex: 3,
+                                cursor: "pointer",
+                            }}
+                            id={point.name}
+                            onClick={(ev) => this.pointClick(ev)}
+                        ></div>
                     ))}
-                </div>
-            )}
-        </MainDiv>
-    );
+                {config.type === "grid" && (
+                    <div id="grid">
+                        {this.generateGridElements().map((El, index) => (
+                            <El
+                                key={index}
+                                onClick={(ev: any) => this.boxClick(ev)}
+                            />
+                        ))}
+                    </div>
+                )}
+            </MainDiv>
+        );
+    }
 }
 
 export default Bard;
-
-export { Bard };
 
 export type { BardConfig };
 

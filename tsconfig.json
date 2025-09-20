@@ -1,12 +1,9 @@
 {
     "compilerOptions": {
+        "jsx": "react",
         "target": "ESNext",
         "module": "ESNext",
         "moduleResolution": "Bundler",
-        "skipLibCheck": true,
-        "paths": {
-            "@/*": ["./src/*"]
-        },
-        "jsx": "react-jsx"
+        "skipLibCheck": true
     }
 }
