@@ -1,0 +1,9 @@
+node_modules/
+bun.lock
+images/
+stored/
+index.html
+vite.config.ts
+utils/
+src/
+editor/
