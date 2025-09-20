@@ -79,9 +79,6 @@ class Bard {
         if (this.mode !== "none") this.render();
 
         document.addEventListener("mousemove", (ev) => {
-            this.mouse.x = ev.clientX;
-            this.mouse.y = ev.clientY;
-
             const rect = this.div.getBoundingClientRect(); // maDiv est l'élément cible
 
             // Dans ton gestionnaire d'événement mousemove :
@@ -256,8 +253,6 @@ class Bard {
 
         if (mode !== "none") this.render();
     }
-
-    mouse = { x: 0, y: 0 };
 }
 
 const bard = new Bard({
