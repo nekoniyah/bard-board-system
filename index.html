@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+    </head>
+    <body>
+        <div class="board-container"></div>
+        <button id="mode">none</button>
+
+        <script src="index.ts"></script>
+    </body>
+    <style>
+        body {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .board-container {
+            position: relative;
+            background-image: url("./board.png");
+            background-size: contain;
+            background-position: center center;
+            background-repeat: no-repeat;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .point {
+            position: absolute;
+            background: red;
+            z-index: 20;
+            border-radius: 50%;
+        }
+
+        #mode {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+        }
+
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    </style>
+</html>
