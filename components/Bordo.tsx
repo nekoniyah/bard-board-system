@@ -5,37 +5,41 @@ type StepPoint = { name: string; x: number; y: number; linkedTo?: string[] };
 type GridBox = { name: string; x: number; y: number; type: string };
 type Grid = { height: number; width: number; boxes: GridBox[] };
 
-type BardConfig<T extends "grid" | "steps"> = {
+type BordoConfig<T extends "grid" | "steps"> = {
     boxSize?: number;
     type: T | "grid" | "steps";
     data: T extends "steps" ? StepPoint[] : Grid;
-    image: string;
+    image?: string;
 };
 
-type BardProps<T extends "grid" | "steps"> = {
-    config: BardConfig<T>;
-    on: (eventName: string, ...args: any[]) => void;
+type BordoProps<T extends "grid" | "steps"> = {
+    config: BordoConfig<T>;
+    on?: (eventName: string, ...args: any[]) => void;
+    className?: string;
+    style?: React.CSSProperties;
+    children?: React.ReactNode;
+    id?: string;
 };
 
-type BardState = {
-    mode: "draw" | "link" | "drag" | "none";
+type BordoState = {
     points: StepPoint[];
     grid: Grid;
     mousePercent: { x: number; y: number };
     links: { from: string; to: string }[];
 };
 
-export class Bard<T extends "grid" | "steps"> extends Component<
-    BardProps<T>,
-    BardState
+export class Bordo<T extends "grid" | "steps"> extends Component<
+    BordoProps<T>,
+    BordoState
 > {
     private listeners: ((eventName: string, ...args: any[]) => void)[] = [];
 
-    constructor(props: BardProps<T>) {
+    constructor(props: BordoProps<T>) {
         super(props);
 
+        if (!this.props.config.boxSize) this.props.config.boxSize = 50
+
         this.state = {
-            mode: "none",
             points: [],
             grid: {
                 height: 0,
@@ -64,7 +68,7 @@ export class Bard<T extends "grid" | "steps"> extends Component<
         this.updateFromConfig();
     }
 
-    componentDidUpdate(prevProps: BardProps<T>) {
+    componentDidUpdate(prevProps: BordoProps<T>) {
         if (prevProps.config !== this.props.config) {
             this.updateFromConfig();
         }
@@ -140,6 +144,7 @@ export class Bard<T extends "grid" | "steps"> extends Component<
                         justify-content: center;
                         width: ${config.boxSize}px;
                         height: ${config.boxSize}px;
+                        pointer-events: "all";
                         gap: 0;
                     `;
 
@@ -159,16 +164,24 @@ export class Bard<T extends "grid" | "steps"> extends Component<
 
         let MainDiv = styled.div`
             position: relative;
-            background-image: url("${config.image}");
+            background-image: url(${config.image});
             background-size: contain;
             background-position: center center;
             background-repeat: no-repeat;
             width: 100%;
-            height: 100%;
+            height: 100%; pointer-events: none;
         `;
 
+        let BlankMainDiv = styled.div`
+            position: relative;
+            width: 100%;
+            height: 100%; pointer-events: none;
+        `;
+
+        let Main = config.image ? MainDiv : BlankMainDiv;
+
         return (
-            <MainDiv onMouseMove={this.mousemove}>
+            <Main onMouseMove={this.mousemove} id={this.props.id} className={this.props.className} style={this.props.style}>
                 {config.type === "steps" &&
                     points.map((point) => (
                         <div
@@ -177,15 +190,14 @@ export class Bard<T extends "grid" | "steps"> extends Component<
                                 position: "absolute",
                                 width: `${config.boxSize}px`,
                                 height: `${config.boxSize}px`,
-                                left: `calc(${point.x}% - ${
-                                    config.boxSize / 2
-                                }px)`,
-                                top: `calc(${point.y}% - ${
-                                    config.boxSize / 2
-                                }px)`,
+                                left: `calc(${point.x}% - ${config.boxSize! / 2
+                                    }px)`,
+                                top: `calc(${point.y}% - ${config.boxSize! / 2
+                                    }px)`,
                                 borderRadius: "50%",
                                 zIndex: 3,
                                 cursor: "pointer",
+                                pointerEvents: "all",
                             }}
                             id={point.name}
                             onClick={(ev) => this.pointClick(ev)}
@@ -197,21 +209,22 @@ export class Bard<T extends "grid" | "steps"> extends Component<
                             <El
                                 key={index}
                                 onClick={(ev: any) => this.boxClick(ev)}
+
                             />
                         ))}
                     </div>
                 )}
-            </MainDiv>
+            </Main>
         );
     }
 }
 
-export default Bard;
+export default Bordo;
 
-export type { BardConfig };
+export type { BordoConfig };
 
 export type { StepPoint, GridBox, Grid };
 
-export type BardMode = "draw" | "link" | "drag" | "none";
+export type BordoMode = "draw" | "link" | "drag" | "none";
 
-export type BardType = "grid" | "steps";
+export type BordoType = "grid" | "steps";

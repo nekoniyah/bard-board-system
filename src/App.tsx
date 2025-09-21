@@ -1,6 +1,6 @@
 import React from "react";
 import board1 from "../stored/steps-1.json";
-import Bard from "../components/Bard";
+import Bard from "../components/Bordo";
 import "./index.scss";
 import styled from "styled-components";
 
