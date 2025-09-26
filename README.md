@@ -1,8 +1,4 @@
-<<<<<<< Updated upstream
 # BordoJS
-=======
-# Bard
->>>>>>> Stashed changes
 
 **A simple javascript board game engine library**
 

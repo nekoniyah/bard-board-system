@@ -1,0 +1,11 @@
+src
+├── components
+│   └── ui
+├── features
+│   ├── editor
+│   └── upload
+├── hooks
+├── lib
+├── pages
+└── shared
+    └── utils

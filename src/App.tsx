@@ -1,13 +1,8 @@
-<<<<<<< Updated upstream
-import React from "react";
-import board1 from "../stored/steps-1.json";
-import Bard from "../components/Bordo";
-=======
 import React, { useState } from "react";
-import Uploader from "../components/Uploader";
-import Editor from "../components/Editor";
->>>>>>> Stashed changes
-import "./index.scss";
+import UploaderPage from "./pages/UploaderPage";
+import EditorPage from "./pages/EditorPage";
+import MobileWarning from "./components/MobileWarning";
+import "./index.css";
 
 export default function App() {
     const [currentStep, setCurrentStep] = useState<"upload" | "edit">("upload");
@@ -26,18 +21,24 @@ export default function App() {
     };
 
     return (
-        <div className="app-main">
-            {currentStep === "upload" ? (
-                <Uploader onImageUpload={handleImageUpload} />
-            ) : (
-                <Editor
-                    imageUrl={imageUrl}
-                    onBack={handleBack}
-                    onSave={(data) => {
-                        setSavedData(data);
-                    }}
-                />
-            )}
-        </div>
+        <>
+            {/* Afficher MobileWarning sur mobile, sinon le contenu normal */}
+            <div className="lg:hidden">
+                <MobileWarning />
+            </div>
+            <div className="hidden lg:block">
+                {currentStep === "upload" ? (
+                    <UploaderPage onImageUpload={handleImageUpload} />
+                ) : (
+                    <EditorPage
+                        imageUrl={imageUrl}
+                        onBack={handleBack}
+                        onSave={(data) => {
+                            setSavedData(data);
+                        }}
+                    />
+                )}
+            </div>
+        </>
     );
 }

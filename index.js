@@ -1,3 +1,3 @@
-import Bard from "./modules/Bard/Main.tsx";
+import Bordo from "./modules/Bordo/Main.tsx";
 
-export default Bard;
+export default Bordo;
