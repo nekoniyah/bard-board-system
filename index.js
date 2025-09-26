@@ -1,3 +1,3 @@
-import Bard from "./components/Bard";
+import Bard from "./modules/Bard/Main.tsx";
 
 export default Bard;

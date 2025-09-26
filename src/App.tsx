@@ -1,43 +1,43 @@
+<<<<<<< Updated upstream
 import React from "react";
 import board1 from "../stored/steps-1.json";
 import Bard from "../components/Bordo";
+=======
+import React, { useState } from "react";
+import Uploader from "../components/Uploader";
+import Editor from "../components/Editor";
+>>>>>>> Stashed changes
 import "./index.scss";
-import styled from "styled-components";
 
-let EventP = styled.p`
-    margin: 0;
-    padding: 0;
-    font-size: 12px;
-`;
-
-// Generate main App component
 export default function App() {
-    const [logs, setLogs] = React.useState<string[]>([]);
+    const [currentStep, setCurrentStep] = useState<"upload" | "edit">("upload");
+    const [imageUrl, setImageUrl] = useState<string>("");
+    const [savedData, setSavedData] = useState<any>(null);
 
-    function on(eventName: string, ev) {
-        switch (eventName) {
-            case "click":
-                setLogs((l) => [...l, `click ${ev.target.id}`]);
-                break;
-        }
-    }
+
+    const handleImageUpload = (uploadedImageUrl: string) => {
+        setImageUrl(uploadedImageUrl);
+        setCurrentStep("edit");
+    };
+
+    const handleBack = () => {
+        setCurrentStep("upload");
+        setImageUrl("");
+    };
 
     return (
-        <div id="main">
-            <div id="events">
-                {logs.map((l, i) => (
-                    <EventP key={i}>{l}</EventP>
-                ))}
-            </div>
-            <Bard
-                config={{
-                    data: board1,
-                    type: "steps",
-                    boxSize: 50,
-                    image: "/images/board.png",
-                }}
-                on={on}
-            ></Bard>
+        <div className="app-main">
+            {currentStep === "upload" ? (
+                <Uploader onImageUpload={handleImageUpload} />
+            ) : (
+                <Editor
+                    imageUrl={imageUrl}
+                    onBack={handleBack}
+                    onSave={(data) => {
+                        setSavedData(data);
+                    }}
+                />
+            )}
         </div>
     );
 }

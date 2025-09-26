@@ -27,8 +27,6 @@ class Bard {
     mousePercent = { x: 0, y: 0 };
 
     reversePercentage(x: number, y: number) {
-        // X and Y are in percentage - find the real value in px
-
         const rect = this.div.getBoundingClientRect();
 
         return {
@@ -42,7 +40,6 @@ class Bard {
         this.mode = options.mode || "none";
         this.boxSize = options.boxSize || 20;
 
-        // SVG overlay
         this.svg = document.createElementNS(
             "http://www.w3.org/2000/svg",
             "svg"
@@ -79,9 +76,8 @@ class Bard {
         if (this.mode !== "none") this.render();
 
         document.addEventListener("mousemove", (ev) => {
-            const rect = this.div.getBoundingClientRect(); // maDiv est l'élément cible
+            const rect = this.div.getBoundingClientRect();
 
-            // Dans ton gestionnaire d'événement mousemove :
             this.mousePercent.x = ((ev.pageX - rect.left) / rect.width) * 100;
             this.mousePercent.y = ((ev.pageY - rect.top) / rect.height) * 100;
         });
